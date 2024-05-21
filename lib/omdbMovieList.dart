@@ -7,6 +7,7 @@ import 'camera_screen.dart';
 import 'database_helper.dart';
 import 'favoriteMovieScreen.dart';
 import 'gallery_helper.dart';
+import 'package:google_nav_bar/google_nav_bar.dart';
 
 class OmdbMoviesScreen extends StatefulWidget {
   @override
@@ -113,7 +114,9 @@ class _OmdbMoviesScreenState extends State<OmdbMoviesScreen> {
   Future<void> _accessGallery() async {
     final List<File> galleryImages = await GalleryHelper.fetchImages();
     if (galleryImages.isNotEmpty) {
-      // Implementasi untuk menampilkan galeri
+      setState(() {
+        _images = galleryImages;
+      });
     } else {
       print('No images found in the gallery.');
     }
@@ -123,6 +126,11 @@ class _OmdbMoviesScreenState extends State<OmdbMoviesScreen> {
     setState(() {
       _selectedIndex = index;
     });
+    if (index == 3) {
+      _accessCamera();
+    } else if (index == 2) {
+      _accessGallery();
+    }
   }
 
   Widget _buildMoviesList() {
@@ -178,38 +186,50 @@ class _OmdbMoviesScreenState extends State<OmdbMoviesScreen> {
           : _selectedIndex == 1
               ? FavoriteMoviesScreen()
               : _selectedIndex == 2
-                  ? _buildGallery()
+              ? _buildGallery()
                   : Container(),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.movie),
-            label: 'Movies',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(blurRadius: 20, color: Colors.black.withOpacity(.1)),
+          ],
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 15.0, vertical: 8),
+            child: GNav(
+              gap: 8,
+              activeColor: Colors.white,
+              iconSize: 24,
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+              duration: Duration(milliseconds: 800),
+              tabBackgroundColor: Colors.blueAccent,
+              tabs: [
+                GButton(
+                  icon: Icons.movie,
+                  text: 'Movies',
+                ),
+                GButton(
+                  icon: Icons.favorite,
+                  text: 'Favorites',
+                ),
+                GButton(
+                  icon: Icons.photo,
+                  text: 'Gallery',
+                ),
+                GButton(
+                  icon: Icons.camera_alt,
+                  text: 'Camera',
+                ),
+              ],
+              selectedIndex: _selectedIndex,
+              onTabChange: (index) {
+                _onItemTapped(index);
+              },
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: 'Favorites',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.photo),
-            label: 'Gallery',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.camera_alt),
-            label: 'Camera',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor:
-Colors.amber[800],
-        onTap: (index) {
-          _onItemTapped(index);
-          if (index == 3) {
-            _accessCamera();
-          } else if (index == 2) {
-            _accessGallery();
-          }
-        },
+        ),
       ),
     );
   }
